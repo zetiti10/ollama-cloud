@@ -38,9 +38,20 @@ def _format_tool(
     tool: llm.Tool, custom_serializer: Callable[[Any], Any] | None
 ) -> dict[str, Any]:
     """Format tool specification."""
+    parameters = {"type": "object", "properties": {}}
+    
+    if tool.parameters:
+        try:
+            converted = convert(tool.parameters, custom_serializer=custom_serializer)
+            # Ensure it is a valid dictionary and not an _Unsupported object type
+            if isinstance(converted, dict):
+                parameters = converted
+        except Exception:
+            pass
+
     tool_spec = {
         "name": tool.name,
-        "parameters": convert(tool.parameters, custom_serializer=custom_serializer),
+        "parameters": parameters,
     }
     if tool.description:
         tool_spec["description"] = tool.description
